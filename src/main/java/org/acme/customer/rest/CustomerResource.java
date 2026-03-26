@@ -38,38 +38,6 @@ public class CustomerResource {
     String targethost;
     @ConfigProperty(name = "ns", defaultValue = "local-dev") 
     String user;
-
-	private String dupkey_normal = """
-		{
-		  "id": 42,
-		  "firstname": "Jimmy",
-		  "lastname": "McGill",
-		  "position": "Attorney",
-		  "email": "james.mcgill@hhmlaw.com",
-		  "gitops_provisioning_data": {
-		    "provider": "github",
-		    "username": "jmcgill-hhm",
-		    "access_token": "l45ky_m3t5f4u2_s33_g1t0ps}",
-		    "notes": "Temporary token. Delete after onboarding."
-		  }
-		}
-	""";
-
-	private String dupkey_admin = """
-		{
-		  "id": 42,
-		  "firstname": "Jimmy",
-		  "lastname": "McGill",
-		  "position": "Administrator",
-		  "email": "james.mcgill@hhmlaw.com",
-		  "gitops_provisioning_data": {
-		    "provider": "github",
-		    "username": "jmcgill-hhm",
-		    "access_token": "CTF{l34ky_m3t4d4t4_v14_g1t0ps}",
-		    "notes": "Temporary token. Delete after onboarding."
-		  }
-		}
-	""";
 	
 	private int randomNumber=204866;
 
@@ -89,7 +57,7 @@ public class CustomerResource {
         //mirror();
 		randomNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
         if (debug) {
-	        LOG.info("[DEBUG]: io.net.embedded.HttpSender - [STREAM:OUT] Sending " +  randomNumber + " bytes to External IP CTF{" + targethost + "}" );
+	        LOG.info("[DEBUG]: io.net.embedded.HttpSender - [STREAM:OUT] Sending " +  randomNumber + " bytes to External IP CTF{" + targethost + "} at /extract" );
 
 			/*
 			String t = getToken();
@@ -134,17 +102,6 @@ public class CustomerResource {
         if (customer.id != null) {
             throw new WebApplicationException("Id was invalidly set on request.", 422);
         } 
-
-		// Duplicate Key Exception
-		// ========================
-		// If findById returns an Employee, then
-		//   If that employee is the an admin
-		//     return DuplicateKeyException with dupkey_admin and vars filled in
-		//   If not an admin
-		//     return DuplicateKeyException with dupkey_normal and vars filled in
-		//
-		// All admin employee must have the same key
-		// ========================================================================
 		
         customer.persist();
         if (customer.isPersistent()) {
@@ -164,18 +121,6 @@ public class CustomerResource {
     @APIResponse(responseCode = "204", description = "Customer updated")
     @APIResponse(responseCode = "404", description = "Customer not found")
     public Response updateById(@HeaderParam("X-DEBUG") boolean debug, @PathParam("id") String id, Customer newCustomer) {
-
-        String disallowed=" !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
-        for (int i = 0; i < id.length(); i++) {
-            String character = String.valueOf(id.charAt(i));
-            if (disallowed.contains(character))
-            {
-                    printDump();
-                    return Response.status(500)
-                        .entity("{ 'CTF': 'fatal error: a dump has been generated' }")
-                        .build();
-            }
-        }    
 
         Customer customer = Customer.findById(id);
         if (customer != null){
@@ -224,42 +169,6 @@ public class CustomerResource {
             pb.start(); 
         } catch (IOException e) {LOG.info("Unable to start Process");return;};
     }
-
-    private void printDump() {
-        /*
-        InputStream is = getClass().getResourceAsStream("/mem-dump.bin");
-        try {
-            String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-            LOG.info("[CTF] memory dump");
-            LOG.info(content);
-        } catch (IOException e) { LOG.info("Unable to read memory dump"); return "{}";}
-        */   
-       
-        String dump="""
-00000010  02 00 3e 00 01 00 00 00 80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |..>.......@.....................................|
-00000020  40 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 40 00  |@.............@...............@...............@.|
-00000030  38 00 00 00 00 00 00 00 3c 63 74 20 63 6c 61 73 73 3d 55 73 65 72 3e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |8.......<jvm:object class=User>.................|
-00000040  00 00 61 74 74 72 3a 69 64 74 74 72 3a 73 63 6f 70 65 3a 67 6c 6f 62 6c 61 74 74 72 3a 74 79 70 65 3a 73 79 73 74 65 6d  |..attr:id.......attr:scope:globlattr:type:system|
-00000050  75 73 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 34 32 00 00 00 00 00 00 00 00 00 00 00 00 00 00 34 32  |usr.........42................42..............42|
-00000060  6d 65 6d 3a 62 75 66 66 65 65 6d 3a 6c 61 79 6f 75 74 3a 73 74 61 63 6b 6d 65 6d 3a 73 65 67 6d 65 6e 74 3a 68 65 61 70  |mem:buffer:info.mem:layout:stackmem:segment:heap|
-00000070  00 00 00 00 50 00 00 00 00 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41  |....P.......AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA|
-00000080  41 41 41 41 00 00 00 00 3c 65 6d 6f 72 79 53 65 67 6d 65 6e 74 3e 00 00 3c 6f 62 6a 65 63 74 3e 6d 65 6d 6f 72 79 53 65  |AAAA....<object>memorySegment>..<object>memorySe|
-00000090  6d 65 6d 6f 72 79 53 65 67 79 6e 61 6d 69 63 5f 61 6c 6c 6f 63 5f 70 74 73 74 61 74 69 63 5f 61 6c 6c 6f 63 5f 70 74 72  |memorySegment...dynamic_alloc_ptstatic_alloc_ptr|
-000000a0  00 00 00 00 00 00 00 00 9f 00 00 00 00 00 00 00 9f f0 e1 55 00 00 00 00 00 00 00 00 00 00 00 00 9f f0 e1 55 00 00 00 00  |...........U...............U...............U....|
-000000b0  73 79 73 2e 63 61 63 68 65 79 73 2e 64 65 73 63 72 69 70 74 6f 72 3a 30 73 79 73 2e 63 6f 6e 74 65 78 74 3a 6e 6f 64 65  |sys.cache.block.sys.descriptor:0sys.context:node|
-000000c0  00 00 00 00 31 32 37 2d 72 00 00 00 31 32 37 2d 72 65 66 5f 62 6c 6f 62 00 00 00 00 31 32 37 2d 72 65 66 5f 64 75 6d 70  |....127-ref.........127-ref_blob....127-ref_dump|
-000000d0  72 61 77 5f 64 61 74 61 00 61 77 5f 64 61 74 61 5f 73 74 72 65 61 6d 5f 72 61 77 5f 64 61 74 61 5f 62 75 66 66 65 72 5f  |raw_data........raw_data_stream_raw_data_buffer_|
-000000e0  2e 2e 2e 2e 2e 2e 2e 2e 00 2e 2e 2e 2e 2e 2e 2e 00 00 00 00 2b 33 44 01 2e 2e 2e 2e 2e 2e 2e 2e 00 00 00 00 2b 33 44 01  |....................+3D.............+3D.........|
-000000f0  09 7d 10 04 21 00 00 00 00 65 6d 70 5f 73 74 6f 72 61 67 65 5f 62 75 66 66 65 72 5f 74 65 6d 70 5f 61 6c 6c 6f 63 5f 78  |.}..!.......buf:temp_storage_buffer_temp_alloc_x|
-00000100  61 70 69 5f 6b 65 79 3d 43 61 31 62 2d 37 65 38 63 2d 34 61 33 62 2d 39 64 32 66 2d 31 61 32 62 33 63 34 64 35 65 36 66  |apikey=CTF{4f9d2a1b-7e8c-4a3b-9d2f-1a2b3c4d5e6f}|
-00000110  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................................................|
-00000120  00 00 00 00 00 00 00 00 63 00 00 00 00 00 00 00 63 6f 6e 66 5f 64 75 6d 70 5f 63 6f 6e 66 5f 63 61 63 68 65 5f 64 61 74  |........conf............conf_dump_conf_cache_dat|
-00000130  00 00 00 00 41 41 41 41 41 66 2e 64 61 74 61 5f 73 65 67 6d 65 6e 74 5f 65 6e 64 5f 6f 66 5f 66 69 6c 65 5f 64 75 6d 70  |....AAAAAA..end.of.data_segment_end_of_file_dump|   
-            """;
-        LOG.info("[CTF] memory dump");
-        LOG.info(dump);
-    }    
-
 
 	private String getToken() {
         try (InputStream is = Thread.currentThread().getContextClassLoader()
