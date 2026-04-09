@@ -46,8 +46,8 @@ public class CustomerResource {
     @APIResponse(responseCode = "200", description = "Customers found")
     public Response get(@HeaderParam("X-DEBUG") boolean debug, @QueryParam("firstname") String firstname) {
 
-        if (!debug) LOG.info("[CTF.internal.verbose] - debug mode is off - nothing is shown");
-        else LOG.info("[CTF.internal.verbose] - debug mode is ON");
+        if (!debug) LOG.info("[CTF] - DYNAMIC DEBUG IS OFF");
+        else LOG.info("[CTF] - debug mode is ON");
 
         Response r=null;
         if (firstname != null)
