@@ -1,2 +1,0 @@
-INSERT INTO Customer(id,firstName,lastName, email, phone) VALUES (nextval('customer_SEQ'),'Saul','Goodman','saul@goodman.com','');
-INSERT INTO Customer(id,firstName,lastName, email, phone) VALUES (nextval('customer_SEQ'),'Eric','Cartman','eric@southpark.us','');

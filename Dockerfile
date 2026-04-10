@@ -15,4 +15,3 @@ ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
 RUN echo "ctf.api-key=${KEY}" > /deployments/application-internal.prop
 
 ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]
-# ----------

@@ -1,4 +1,4 @@
-package org.acme.customer.rest;
+package org.redhat.ctf;
 
 import io.quarkus.test.junit.QuarkusIntegrationTest;
 
